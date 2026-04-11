@@ -22,3 +22,5 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 // HU-02: Perfil de usuario
 Route::get('/perfil/{id}', [PerfilController::class, 'show']);
 Route::put('/perfil/{id}', [PerfilController::class, 'update']);
+
+Route::post('/perfil/{id}/foto', [PerfilController::class, 'uploadFoto']);
