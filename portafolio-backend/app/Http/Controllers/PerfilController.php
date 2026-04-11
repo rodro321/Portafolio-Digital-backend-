@@ -62,4 +62,36 @@ class PerfilController extends Controller
 
         return response()->json(['message' => 'Perfil actualizado correctamente']);
     }
+    // T02-04: Subida de foto de perfil
+public function uploadFoto(Request $request, $id)
+{
+    $request->validate([
+        'foto' => 'required|image|mimes:jpg,jpeg,png|max:2048',
+    ]);
+
+    $archivo = $request->file('foto');
+    $nombreArchivo = 'perfil_' . $id . '_' . time() . '.' . $archivo->getClientOriginalExtension();
+    $ruta = $archivo->storeAs('fotos_perfil', $nombreArchivo, 'public');
+
+    // Guardar en tabla imagen
+    $idImagen = DB::selectOne("
+        INSERT INTO imagen (ruta, nombre, tipo, tamanio_kb)
+        VALUES (?, ?, ?, ?)
+        RETURNING id_imagen
+    ", [
+        $ruta,
+        $nombreArchivo,
+        $archivo->getMimeType(),
+        round($archivo->getSize() / 1024)
+    ]);
+
+    // Actualizar usuario con la nueva imagen
+    DB::update("UPDATE usuario SET id_imagen = ? WHERE id_usuario = ?", 
+        [$idImagen->id_imagen, $id]);
+
+    return response()->json([
+        'message' => 'Foto de perfil actualizada correctamente',
+        'ruta' => $ruta
+    ]);
+}
 }
