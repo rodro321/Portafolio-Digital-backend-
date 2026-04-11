@@ -22,9 +22,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/perfil/deactivate', [PerfilController::class, 'deactivate']);
 
     // Habilidades
-    Route::get('/habilidades/catalogo', [HabilidadController::class, 'catalogo']);
-    Route::get('/habilidades/mis', [HabilidadController::class, 'misHabilidades']);
-    Route::post('/habilidades/agregar', [HabilidadController::class, 'agregar']);
-    Route::put('/habilidades/actualizar-nivel', [HabilidadController::class, 'actualizarNivel']);
-    Route::delete('/habilidades/eliminar', [HabilidadController::class, 'eliminar']);
+    Route::get('/habilidades/catalogo', [App\Http\Controllers\Api\HabilidadController::class, 'catalogo']);
+    Route::get('/habilidades/mis', [App\Http\Controllers\Api\HabilidadController::class, 'misHabilidades']);
+    Route::post('/habilidades/agregar', [App\Http\Controllers\Api\HabilidadController::class, 'agregar']);
+    Route::put('/habilidades/actualizar-nivel', [App\Http\Controllers\Api\HabilidadController::class, 'actualizarNivel']);
+    Route::delete('/habilidades/eliminar', [App\Http\Controllers\Api\HabilidadController::class, 'eliminar']);
 });

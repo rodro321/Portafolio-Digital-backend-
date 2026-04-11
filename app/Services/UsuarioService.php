@@ -6,6 +6,9 @@ use App\Models\Rol;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use App\Models\User;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Storage;
+use App\Models\Imagen;
 
 class UsuarioService
 {
@@ -24,13 +27,12 @@ class UsuarioService
         $passwordHash = Hash::make($data['password']);
 
         $result = DB::selectOne(
-            "SELECT sp_registrar_usuario(?, ?, ?, ?, ?, ?, ?, ?, ?) AS respuesta",
+            "SELECT sp_registrar_usuario(?, ?, ?, ?, ?, ?, ?, ?) AS respuesta",
             [
                 $data['nombre'],
                 $data['apellido'],
                 $data['email'],
                 $passwordHash,
-                $data['profesion'] ?? null,
                 $data['biografia'] ?? null,
                 $data['telefono'] ?? null,
                 $data['ciudad'] ?? null,
@@ -40,7 +42,6 @@ class UsuarioService
 
         return json_decode($result->respuesta, true);
     }
-
     /**
      * Buscar usuario por email (para login)
      */
@@ -176,24 +177,76 @@ class UsuarioService
      */
     public function crearDesdeGitHub(array $githubUser): User
     {
+        $fullName = trim($githubUser['name'] ?? $githubUser['nickname'] ?? 'Usuario');
+        $parts = preg_split('/\s+/', $fullName, 2);
+        $nombre = $parts[0] ?? '';
+        $apellido = $parts[1] ?? '';
+
         $user = User::create([
-            'nombre' => $githubUser['name'] ?? explode(' ', $githubUser['nickname'] ?? 'Usuario')[0],
-            'apellido' => $githubUser['name'] ? substr(strstr($githubUser['name'], ' '), 1) : '',
+            'nombre' => $nombre,
+            'apellido' => $apellido,
             'email' => $githubUser['email'] ?? $githubUser['id'] . '@github.user',
-            'password_hash' => Hash::make(uniqid()), // contraseña aleatoria
+            'password_hash' => Hash::make(uniqid()),
             'profesion' => $githubUser['bio'] ?? null,
             'activo' => true,
             'fecha_registro' => now()
         ]);
 
-        // Asignar rol usuario
+        // Asignar rol
         $rolUsuario = Rol::where('nombre', 'usuario')->first();
         if ($rolUsuario) {
             $user->roles()->attach($rolUsuario->id_rol);
         }
 
-        // Vincular cuenta GitHub
+        // Vincular GitHub
         $this->vincularGitHub($user->id_usuario, $githubUser['id']);
+
+        // Descargar y guardar foto de GitHub
+        if (!empty($githubUser['avatar'])) {
+            try {
+                $avatarUrl = $githubUser['avatar'];
+                \Log::info('Intentando descargar avatar desde: ' . $avatarUrl);
+
+                // Configurar cliente HTTP con timeout y sin verificación SSL (solo desarrollo)
+                $response = Http::timeout(15)
+                    ->withoutVerifying()  // Útil en Windows con problemas de certificados
+                    ->get($avatarUrl);
+
+                if ($response->successful()) {
+                    $contentType = $response->header('Content-Type');
+                    $extension = 'jpg';
+                    if (strpos($contentType, 'png') !== false) {
+                        $extension = 'png';
+                    } elseif (strpos($contentType, 'gif') !== false) {
+                        $extension = 'gif';
+                    }
+
+                    $filename = 'avatar_' . $user->id_usuario . '_' . time() . '.' . $extension;
+                    $path = 'avatars/' . $filename;
+
+                    // Guardar en storage/app/public/avatars
+                    Storage::disk('public')->put($path, $response->body());
+
+                    // Crear registro en tabla imagen
+                    $imagen = Imagen::create([
+                        'ruta' => '/storage/' . $path,           // Ruta relativa accesible públicamente
+                        'nombre' => $filename,
+                        'tipo' => $contentType ?? 'image/jpeg',
+                        'tamanio_kb' => (int) (strlen($response->body()) / 1024),
+                        'fecha_subida' => now()
+                    ]);
+
+                    $user->id_imagen = $imagen->id_imagen;
+                    $user->save();
+
+                    \Log::info('Avatar guardado correctamente: ' . $path);
+                } else {
+                    \Log::error('Error HTTP al descargar avatar: Código ' . $response->status());
+                }
+            } catch (\Exception $e) {
+                \Log::error('Excepción al descargar avatar de GitHub: ' . $e->getMessage());
+            }
+        }
 
         return $user;
     }

@@ -23,13 +23,16 @@ class AuthController extends Controller
      * Registro con email/password
      */
     public function register(Request $request)
-    {
+{
         $request->validate([
             'nombre' => 'required|string|max:80',
             'apellido' => 'required|string|max:80',
             'email' => 'required|email|max:150',
             'password' => 'required|string|min:6',
-            'profesion' => 'nullable|string|max:120',
+            'password_confirmation' => 'required|same:password',
+            'telefono' => 'nullable|string|max:20',
+            'ciudad' => 'nullable|string|max:80',
+            'pais' => 'nullable|string|max:80',
         ]);
 
         $respuesta = $this->usuarioService->registrar($request->all());
