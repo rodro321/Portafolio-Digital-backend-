@@ -2,6 +2,7 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\PerfilController;
 
 /*
 |--------------------------------------------------------------------------
@@ -17,3 +18,9 @@ use Illuminate\Support\Facades\Route;
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
+
+// HU-02: Perfil de usuario
+Route::get('/perfil/{id}', [PerfilController::class, 'show']);
+Route::put('/perfil/{id}', [PerfilController::class, 'update']);
+
+Route::post('/perfil/{id}/foto', [PerfilController::class, 'uploadFoto']);
