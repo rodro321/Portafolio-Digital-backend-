@@ -105,7 +105,7 @@ class AuthController extends Controller
      */
     public function redirectToGitHub()
     {
-        return Socialite::driver('github')->redirect();
+        return Socialite::driver('github')->stateless()->redirect();
     }
 
     /**
@@ -114,7 +114,7 @@ class AuthController extends Controller
     public function handleGitHubCallback(Request $request)
     {
         try {
-            $githubUser = Socialite::driver('github')->user();
+            $githubUser = Socialite::driver('github')->stateless()->user();
 
             \Log::info('GitHub User:', [
                 'id' => $githubUser->getId(),
@@ -144,7 +144,7 @@ class AuthController extends Controller
             $frontendUrl = env('FRONTEND_URL', 'http://localhost:3000');
             return redirect()->to($frontendUrl . '/auth/github/callback?token=' . $token);
         } catch (\Exception $e) {
-            \Log::error('GitHub callback error: ' . $e->getMessage());
+            \Log::error('GitHub callback error: ' . $e->getMessage() . ' ' . $e->getTraceAsString());
             return redirect()->to(env('FRONTEND_URL') . '/login?error=github_failed');
         }
     }

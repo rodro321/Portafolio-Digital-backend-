@@ -7,8 +7,6 @@ use App\Http\Controllers\Api\HabilidadController;
 // Rutas públicas
 Route::post('/auth/register', [AuthController::class, 'register']);
 Route::post('/auth/login', [AuthController::class, 'login']);
-Route::get('/auth/github/redirect', [AuthController::class, 'redirectToGitHub']);
-Route::get('/auth/github/callback', [AuthController::class, 'handleGitHubCallback']);
 
 // Rutas protegidas
 Route::middleware('auth:sanctum')->group(function () {
