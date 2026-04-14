@@ -2,24 +2,18 @@
 
 return [
 
-    /*
-    |--------------------------------------------------------------------------
-    | Cross-Origin Resource Sharing (CORS) Configuration
-    |--------------------------------------------------------------------------
-    |
-    | Here you may configure your settings for cross-origin resource sharing
-    | or "CORS". This determines what cross-origin operations may execute
-    | in web browsers. You are free to adjust these settings as needed.
-    |
-    | To learn more: https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS
-    |
-    */
-
     'paths' => ['api/*', 'sanctum/csrf-cookie'],
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => ['*'],
+    /*
+     * Orígenes permitidos.
+     * En desarrollo: solo el frontend local.
+     * En producción: cambiar a la URL exacta del frontend desplegado.
+     */
+    'allowed_origins' => [
+        env('FRONTEND_URL', 'http://localhost:3000'),
+    ],
 
     'allowed_origins_patterns' => [],
 
@@ -27,8 +21,11 @@ return [
 
     'exposed_headers' => [],
 
-    'max_age' => 0,
+    'max_age' => 86400,
 
-    'supports_credentials' => false,
-
+    /*
+     * Necesario para que axios envíe el token Bearer
+     * y para que el browser acepte la respuesta CORS.
+     */
+    'supports_credentials' => true,
 ];

@@ -1,64 +1,108 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400"></a></p>
+# Portafolio Digital — Backend (Laravel 8 + PostgreSQL)
 
-<p align="center">
-<a href="https://travis-ci.org/laravel/framework"><img src="https://travis-ci.org/laravel/framework.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+API REST para el sistema generador de portafolios digitales.
 
-## About Laravel
+## Requisitos
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+- **PHP** 7.4+ (con extensiones: pdo_pgsql, mbstring, openssl, tokenizer, xml, ctype, json, bcmath)
+- **Composer** 2.x
+- **PostgreSQL** 12+
+- **Node.js** 16+ (solo si se usa el frontend)
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Instalación rápida
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+```bash
+# 1. Clonar el repositorio
+git clone <url-del-repo>
+cd portafolio-backend
 
-## Learning Laravel
+# 2. Instalar dependencias PHP
+composer install
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+# 3. Copiar archivo de entorno y configurar
+cp .env.example .env
+# Editar .env con tus credenciales de BD y GitHub OAuth
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains over 1500 video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+# 4. Generar APP_KEY
+php artisan key:generate
 
-## Laravel Sponsors
+# 5. Crear la base de datos en PostgreSQL
+# Ejecutar el script SQL completo (tablas + stored procedures + datos iniciales)
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the Laravel [Patreon page](https://patreon.com/taylorotwell).
+# 6. Crear el enlace simbólico de storage (para fotos)
+php artisan storage:link
 
-### Premium Partners
+# 7. Iniciar el servidor de desarrollo
+php artisan serve
+```
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Cubet Techno Labs](https://cubettech.com)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[Many](https://www.many.co.uk)**
-- **[Webdock, Fast VPS Hosting](https://www.webdock.io/en)**
-- **[DevSquad](https://devsquad.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[OP.GG](https://op.gg)**
-- **[WebReinvent](https://webreinvent.com/?utm_source=laravel&utm_medium=github&utm_campaign=patreon-sponsors)**
-- **[Lendio](https://lendio.com)**
+El backend estará disponible en `http://127.0.0.1:8000`
 
-## Contributing
+## Variables de entorno importantes
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+| Variable | Descripción | Ejemplo |
+|---|---|---|
+| `DB_PASSWORD` | Contraseña de PostgreSQL | tu_password |
+| `GITHUB_CLIENT_ID` | ID de OAuth App en GitHub | `Ov23li...` |
+| `GITHUB_CLIENT_SECRET` | Secret de OAuth App | `2f5541...` |
+| `FRONTEND_URL` | URL del frontend (CORS) | `http://localhost:3000` |
 
-## Code of Conduct
+### Configurar GitHub OAuth
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+1. Ir a [GitHub Developer Settings](https://github.com/settings/developers)
+2. Crear una nueva **OAuth App**
+3. **Homepage URL**: `http://localhost:3000`
+4. **Authorization callback URL**: `http://localhost:8000/api/auth/github/callback`
+5. Copiar el Client ID y Client Secret al `.env`
 
-## Security Vulnerabilities
+## Endpoints principales
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+### Auth
+| Método | Ruta | Descripción |
+|---|---|---|
+| POST | `/api/auth/registro` | Registro de usuario |
+| POST | `/api/auth/login` | Login con email/password |
+| POST | `/api/auth/logout` | Cerrar sesión (requiere token) |
+| GET | `/api/auth/me` | Datos del usuario autenticado |
+| GET | `/api/auth/github` | Iniciar OAuth con GitHub |
+| GET | `/api/auth/github/callback` | Callback de GitHub |
 
-## License
+### Perfil
+| Método | Ruta | Descripción |
+|---|---|---|
+| GET | `/api/usuario/perfil` | Obtener perfil |
+| PUT | `/api/usuario/perfil` | Actualizar perfil |
+| POST | `/api/usuario/foto` | Subir foto (form-data) |
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+### Habilidades
+| Método | Ruta | Descripción |
+|---|---|---|
+| GET | `/api/habilidades/catalogo` | Catálogo público |
+| GET | `/api/habilidades` | Mis habilidades |
+| POST | `/api/habilidades` | Agregar del catálogo |
+| PUT | `/api/habilidades/sincronizar` | Sincronizar en bloque |
+
+### Proyectos
+| Método | Ruta | Descripción |
+|---|---|---|
+| GET | `/api/proyectos` | Listar proyectos |
+| POST | `/api/proyectos` | Crear proyecto |
+| PUT | `/api/proyectos/{id}` | Actualizar proyecto |
+| DELETE | `/api/proyectos/{id}` | Eliminar proyecto |
+| POST | `/api/proyectos/{id}/imagenes` | Subir imagen |
+
+## Autenticación
+
+Todas las rutas protegidas requieren el header:
+```
+Authorization: Bearer <token>
+```
+
+El token se obtiene en `/api/auth/login` o `/api/auth/registro`.
+
+## Notas para el equipo
+
+- **NO commitear el archivo `.env`** — contiene secretos. Usar `.env.example` como plantilla.
+- **NO ejecutar `config:cache` ni `route:cache` en desarrollo** — causa que los cambios al `.env` no se reflejen.
+- Si ves errores 401, verifica que el token sea válido con `GET /api/auth/me`.
+- Si ves errores CORS, verifica que `FRONTEND_URL` en `.env` coincida con la URL donde corre tu frontend.
